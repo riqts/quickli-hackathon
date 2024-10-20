@@ -33,7 +33,16 @@ export async function saveEmail(formData: FormData) {
   }
 }
 
-export async function upvote(feature: Feature) {
+export async function upvote(feature: Feature, ip: string) {
+  const currentTime = Date.now();
+  const lastVote = await kv.hget(`vote:${ip}`, "lastVoteTime");
+
+  // Check if the IP has voted in the last hour (3600000 milliseconds = 1 hour)
+  if (lastVote && currentTime - Number(lastVote) < 3600000) {
+    throw new Error("This IP has already voted in the last hour.");
+  }
+
+  // Allow the vote
   const newScore = Number(feature.score) + 1;
   await kv.hset(`item:${feature.id}`, {
     ...feature,
@@ -41,6 +50,9 @@ export async function upvote(feature: Feature) {
   });
 
   await kv.zadd("items_by_score", { score: newScore, member: feature.id });
+
+  // Store the current vote timestamp for the IP
+  await kv.hset(`vote:${ip}`, { lastVoteTime: currentTime });
 
   revalidatePath("/");
 }

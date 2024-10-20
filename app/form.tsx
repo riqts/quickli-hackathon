@@ -2,9 +2,11 @@
 
 import clsx from "clsx";
 import { useOptimistic, useRef, useTransition } from "react";
-import { saveFeature, upvote } from "./actions";
+import { saveFeature, upvote } from "@/lib/actions";
+import useSWR from 'swr'
 import { v4 as uuidv4 } from "uuid";
-import { Feature } from "./types";
+import { Feature } from "@/lib/types";
+import fetchAPI from "@/lib/fetch-api";
 
 function Item({
   isFirst,
@@ -23,7 +25,9 @@ function Item({
   pending: boolean;
   mutate: any;
 }) {
-  let upvoteWithId = upvote.bind(null, feature);
+  const { data, error, mutate: mutateSWR } = useSWR('/api/rules/ip')
+  const { ip, rules } = data || {}
+  let upvoteWithId = upvote.bind(null, feature, ip);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let [isPending, startTransition] = useTransition();
 
@@ -41,7 +45,7 @@ function Item({
             },
             pending: true,
           });
-          await upvote(feature);
+          await upvote(feature, ip)
         });
       }}
       className={clsx(

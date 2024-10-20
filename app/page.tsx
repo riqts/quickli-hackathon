@@ -1,7 +1,7 @@
 import { kv } from "@vercel/kv";
-import { saveEmail } from "./actions";
+import { saveEmail } from "@/lib/actions";
 import FeatureForm from "./form";
-import { Feature } from "./types";
+import { Feature } from "@/lib/types";
 
 export let metadata = {
   title: "Next.js and Redis Example",
